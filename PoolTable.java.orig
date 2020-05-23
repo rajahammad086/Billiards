@@ -1,0 +1,112 @@
+import java.awt.geom.Point2D;
+import java.awt.*;
+public class PoolTable {
+    private Ball cueball_;
+    private Ball [] balls_;
+    private Pocket[] pocket_;
+    private CueStick cuestick_;
+
+    public PoolTable() {
+        cueball_= new Ball(200,200,10,0,0,Color.WHITE);
+        balls_ = new Ball[8];
+        balls_[0] = new Ball(150,150,10,0,0,Color.BLUE);
+        balls_[1] = new Ball(160,150,10,0,0,Color.BLUE);
+        balls_[2] = new Ball(170,150,10,0,0,Color.BLUE);
+        balls_[3] = new Ball(150,140,10,0,0,Color.RED);
+        balls_[4] = new Ball(150,160,10,0,0,Color.RED);
+        balls_[5] = new Ball(160,140,10,0,0,Color.BLACK);
+        balls_[6] = new Ball(160,160,10,0,0,Color.YELLOW);
+        balls_[7] = new Ball(170,160,10,0,0,Color.RED);
+        pocket_ = new Pocket[6];
+        pocket_[0]=new Pocket(15,585,15,2,0);
+        pocket_[1]=new Pocket(15,15,15,2,0);
+        pocket_[2]=new Pocket(300,15,15,2,0);
+        pocket_[3]=new Pocket(300,585,15,2,0);
+        pocket_[4]=new Pocket(585,15,15,2,0);
+        pocket_[5]=new Pocket(585,585,15,2,0);
+        cuestick_=new CueStick(200-10,200,15,0,Color.BLACK);
+        
+    }
+    /**
+     *carries out the actions specified by a character
+     */
+    public void handleKeys(int arrow) {
+
+        if(arrow == Paint.LEFT) {
+            cuestick_.increaseLength();
+        } else if(arrow == Paint.RIGHT) {
+            cuestick_.decreaseLength();
+        } else if(arrow == Paint.UP) {
+            cuestick_.clockwise();
+        } else if(arrow == Paint.DOWN){
+            cuestick_.antiClockwise();
+        } else if (arrow == Paint.OTHER){
+            char character = Paint.getChar();
+             if (character== 'c') {
+            cuestick_.placeCueStick(cueball_);
+            cuestick_.paint();
+        } else if (character==' ')  {
+            System.out.println("space");
+            cuestick_.strikeBall(cueball_);
+        }
+            
+        }
+    }
+    
+
+   
+    public void doAnimateStep(){
+        cueball_.move();
+        
+        for(int i=0;i<8;i++){
+        balls_[i].move();
+        }
+        //handle collisions
+        for(int count= 0; count<8;count++){          
+        if (Point2D.distance(balls_[count].getX(),balls_[count].getY(),cueball_.getX(),cueball_.getY())<= 20 ){
+            double x=balls_[count].getXVelocity();
+            double y=balls_[count].getYVelocity();
+            balls_[count].setVelocity(cueball_.getXVelocity(),cueball_.getYVelocity()) ;
+            cueball_.setVelocity(x,y);
+            balls_[count].move();
+            cueball_.move();
+        }
+        }
+        for(int x=0; x<8;x++){
+            for(int z=0; z<8;z++){
+                if(z!=x){
+            if (Point2D.distance(balls_[x].getX(),balls_[x].getY(),balls_[z].getX(),balls_[z].getY())<= 20 ){
+            double h=balls_[z].getXVelocity();
+            double v=balls_[z].getYVelocity();
+            balls_[z].setVelocity(balls_[x].getXVelocity(),balls_[x].getYVelocity()) ;
+            balls_[x].setVelocity(h,v);
+            balls_[z].move();
+            balls_[x].move();
+        }    
+                }
+            }
+        }
+        
+        //bouncing off the edges
+        for(int i=0;i<8;i++){
+       if(Bouncer.getWallHit(0,600,0,600,balls_,i)==Bouncer.LEFT || Bouncer.getWallHit(0,600,0,600,balls_,i)==Bouncer.RIGHT) {
+            balls_[i].bounceX();
+        } else if (Bouncer.getWallHit(0,600,0,600,balls_,i)==Bouncer.TOP || Bouncer.getWallHit(0,600,0,600,balls_,i)==Bouncer.BOTTOM) {
+            balls_[i].bounceY();
+        }
+        }
+        
+        
+        //paint everything
+         Paint.setColor(Color.GREEN);
+		Paint.fillRect(100,100,600,400);
+        cueball_.paint();
+        for(int i=0;i<8;i++){
+        balls_[i].paint();
+        }
+        for(int i=0;i<6;i++){
+        pocket_[i].paint(Color.BLACK);
+        }
+        cuestick_.paint();
+    }
+}
